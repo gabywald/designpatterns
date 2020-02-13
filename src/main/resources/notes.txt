@@ -1,0 +1,264 @@
+20181122++ Design Patterns / Patron de conception
+
+http://design-patterns.fr/fabrique-en-java -- 
+
+https://blog.xebia.fr/2016/12/28/design-pattern-builder-et-builder-sont-dans-un-bateau/ -- 
+	Le builder fluent : beaucoup de méthodes chainées, un seul build
+	Le builder Command : beaucoup de setter, un seul build() (mais qui fait beaucoup)
+	Le builder officiel : beaucoup de (part) build, une seule class Director. 
+
+https://jormes.developpez.com/articles/design-pattern-construction/ -- 
+
+https://refactoring.guru/design-patterns/builder -- 
+https://refactoring.guru/design-patterns/ -- 
+
+https://www.tutorialspoint.com/design_pattern/adapter_pattern.htm -- 
+https://www.tutorialspoint.com/design_pattern/command_pattern.htm -- 
+https://www.tutorialspoint.com/design_pattern/builder_pattern.htm -- 
+
+https://cheliou.developpez.com/tutoriels/software-craftsmanship/object-building/ -- 
+	Tutoriel sur l'évolution de la construction d'objets en Java
+		Du Telescoping Constructor au Builder Pattern
+		Table des matières
+			I. Introduction
+			II. L'antipattern « Telescoping Constructor »
+				II-A. De la nécessité de construire...
+				II-B. ... aux constructions incertaines
+			III. Quelles alternatives ?
+				III-A. Java Beans
+				III-B. Fabriques
+				III-C. Builder pattern
+					III-C-1. Principe
+					III-C-2. Application au cas d'exemple
+			IV. Optimisations du Builder Pattern
+				IV-A. Gestion de l'héritage
+				IV-B. Partage des bâtisseurs
+				IV-C. Réduction de la verbosité
+			V. Aller plus loin ; les fluent interfaces
+			VI. Conclusion
+			VII. Remerciements
+			VIII. Autour de ce billet
+
+Le Software Craftsmanship est un mouvement visant, je cite le manifeste, « à relever le niveau du développement professionnel de logiciel par la pratique et en aidant les autres à acquérir le savoir-faire ». L'objectif est ainsi d'apprécier :
+	pas seulement des logiciels opérationnels, mais aussi des logiciels bien conçus ;
+	pas seulement l'adaptation au changement, mais aussi l'ajout constant de valeur ;
+	pas seulement les individus et leurs interactions, mais aussi une communauté de professionnels ;
+	pas seulement la collaboration avec les clients, mais aussi des partenariats productifs.
+
+Dans cet article, je vous propose d'aborder concrètement l'une des façades de ce mouvement, à savoir la qualité du code. Plus précisément, je vous propose de nous attarder, par l'exemple, sur les différentes manières de construire les instances dans un langage orienté-objet, notamment au travers de variations de célèbres patrons de conception.
+
+https://fr.wikipedia.org/wiki/Patron_d'architecture -- Patron d'architecture
+Unit of work (travail atomique)
+	Gère une liste d'objets durant une transaction et permet de gérer l'écriture des changements ainsi que les problèmes de concurrence.
+
+Identity map (map d'identification)
+	Charge en une seule fois tous les objets dans un map. Les objets sont ensuite retrouvés via le map. Ce pattern permet de créer un cache pour les objets dans la base de données.
+
+Lazy loading (chargement fainéant)
+	Crée un objet qui ne récupère pas toutes les données qui lui sont associées mais qui peut récupérer seulement celles dont il a besoin. Ce pattern est utile lorsqu'il faut faire des appels sur plusieurs base de données.
+
+Identity field (champ d'identification)
+	Sauvegarde l'identifiant d'un champ dans un objet afin de maintenir une unité entre l'objet contenu en mémoire et une ligne dans une base de données. Ce pattern est utile lorsqu'il y a un mapping entre les objets en mémoire et les lignes d'une base de données.
+
+Foreign key mapping (mapping de clé externe)
+	Map un objet avec une clé qui sert de référence entre différentes tables. Ce pattern peut être utilisé pour tous les cas où il n'y a qu'un seul champ qui sert d'identifiant entre les tables.
+
+Association table mapping (mapping de tables associées)
+	Sauve l'association de plusieurs lignes d'une table avec plusieurs lignes d'une autre table lorsque cette association est représentée dans la base de données par une troisième table. Ce pattern est très utile pour représenter une relation Many-to-many entre deux tables dans une base de données.
+
+Dependant mapping (mapping de dépendance)
+	Crée une relation d'héritage dans les objets créés à partir de la base de données. Ce pattern est utile lorsqu'une table comporte plusieurs références vers d'autres tables mais que ces tables ne comportent pas de référence vers la première, on a donc un système de référence dans un sens qui est représenté dans ce pattern sous forme d'héritage.
+
+Serialized large object (sérialisation de gros objets)
+	Sauvegarde dans un gros objet par sérialisation à partir d'un champ d'une base de données un graphe d'objets. Ce pattern est très utile pour les données représentées en XML mais présente des faiblesses lorsqu'il faut utiliser du SQL car il ne permet pas de faire des requêtes SQL.
+
+Single table inheritance (héritage d'une table unique)
+L'ensemble des classes héritées sont enregistrées dans une seule table. Chaque ligne représente un objet. Une colonne supplémentaire contenant un détrompeur (souvent le nom de la classe fille) doit être ajoutée.
+	Forces
+		Une seule table à gérer dans la base de données
+		Il n'y a pas de jointure à faire pour retrouver les données
+		Les changements dans la hiérarchie des champs n'affectent pas la base de données
+	Faiblesses
+		Les champs ne sont pas toujours fiables, ce qui peut poser problème lors de l'utilisation directe des tables.
+		Les colonnes qui en sont utilisées que par quelques sous-classes participent au gâchis de la mémoire.
+		Une seule table peut finir par devenir trop grosse ce qui diminuera les performances.
+		Il n'y qu'un seul nom possible par champ car cela correspondra au nom de la classe.
+
+Class table inheritance (héritage d'une table par classe)
+	Représente en une hiérarchie de classe héritée où chaque table représente une classe.
+	Forces
+		Toutes les colonnes sont fiables, faciles à comprendre et ne gâchent pas d'espace
+		La relation entre la mémoire et la base de données est très simple
+	Faiblesses
+		Pour accéder à plusieurs tables, il est nécessaire de faire des jointures
+		Tout changement dans les champs implique un refactoring de la base de données
+		La classe mère risque de devenir un goulot d'étranglement à force d'être accédé en continu
+		La normalisation peut rendre compliqué le pattern pour des requêtes ad-hoc.
+
+Repository (répertoire)
+	Crée un lien entre le domaine et la couche de donnée en utilisant une collection d'interface afin d'accéder aux objets du domaine. Ce pattern est utile lorsque la complexité du domaine est élevée. Cela permet d'isoler le domaine de la couche de données. Sur de gros systèmes avec beaucoup d'objets et de requêtes, cela réduit le code pour écrire toutes les requêtes. Cela permet de coder le reste de l'application sans penser aux requêtes pour accéder à la base de données. 
+
+https://fr.wikipedia.org/wiki/Patron_de_conception -- Patron de Conception
+Les patrons de conception ont été formellement reconnus en 1994 à la suite de la parution du livre Design Patterns: Elements of Reusable Software, co-écrit par quatre auteurs : Gamma, Helm, Johnson et Vlissides (Gang of Four - GoF ; en français la bande des quatre). Ce livre, devenu un best-seller, décrit vingt-trois « patrons GoF » et comment s'en servir10.
+
+Il existe trois familles de patrons de conception selon leur utilisation :
+
+	créateurs : ils définissent comment faire l'instanciation et la configuration des classes et des objets ;
+	structuraux : ils définissent comment organiser les classes d'un programme dans une structure plus large (séparant l'interface de l'implémentation) ;
+	comportementaux : ils définissent comment organiser les objets pour que ceux-ci collaborent (distribution des responsabilités) et expliquent le fonctionnement des algorithmes impliqués.
+
+Les vingt-trois patrons GoF :
+
+Factory et abstract factory
+	Ce patron fournit une interface pour créer des familles d'objets sans spécifier la classe concrète11. Le patron factory (en français fabrique) est un patron récurrent. Une fabrique simple retourne une instance d'une classe parmi plusieurs possibles, en fonction des paramètres qui ont été fournis. Toutes les classes ont un lien de parenté, et des méthodes communes, et chacune est optimisée en fonction d'une certaine donnée10. Le patron abstract factory (en français fabrique abstraite) va un pas plus loin que la fabrique simple. Une fabrique abstraite est utilisée pour obtenir un jeu d'objets connexes. Par exemple pour implémenter une charte graphique : il existe une fabrique qui retourne des objets (boutons, menus) dans le style de Windows, une qui retourne des objets dans le style de Motif, et une dans le style de Macintosh. Une fabrique abstraite est obtenue en utilisant une fabrique simple10.
+Adapter
+	Ce patron convertit l'interface d'une classe en une autre interface exploitée par une application. Permet d'interconnecter des classes qui sans cela seraient incompatibles11. Il est utilisé dans le cas où un programme se sert d'une bibliothèque de classe qui ne correspond plus à l'utilisation qui en est faite, à la suite d'une mise à jour de la bibliothèque dont l'interface a changé. Un objet adapteur expose alors l'ancienne interface en utilisant les fonctionnalités de la nouvelle12.
+Bridge
+	Ce patron permet de découpler une abstraction de son implémentation, de telle manière qu'ils peuvent évoluer indépendamment11. Il consiste à diviser une implémentation en deux parties : une classe d'abstraction qui définit le problème à résoudre, et une seconde classe qui fournit une implémentation. Il peut exister plusieurs implémentations pour le même problème et la classe d'abstraction comporte une référence à l'implémentation choisie, qui peut être changée selon les besoins13. Le patron bridge est fréquemment utilisé pour réaliser des récepteurs d'événements14.
+Builder
+	Ce patron sépare le processus de construction d'un objet du résultat obtenu. Permet d'utiliser le même processus pour obtenir différents résultats11. C'est une alternative au pattern factory. Au lieu d'une méthode pour créer un objet, à laquelle est passée un ensemble de paramètres, la classe factory comporte une méthode pour créer un objet - le builder. Cet objet comporte des propriétés qui peuvent être modifiées et une méthode pour créer l'objet final en tenant compte de toutes les propriétés. Ce pattern est particulièrement utile quand il y a de nombreux paramètres de création, presque tous optionnels15.
+Chain of responsibility
+	Ce patron vise à découpler l’émission d'une requête de la réception et le traitement de cette dernière en permettant à plusieurs objets de la traiter successivement11. Dans ce patron chaque objet comporte un lien vers l'objet suivant, qui est du même type. Plusieurs objets sont ainsi attachés et forment une chaîne. Lorsqu'une demande est faite au premier objet de la chaîne, celui-ci tente de la traiter, et s'il ne peut pas il fait appel à l'objet suivant, et ainsi de suite16.
+Command
+	Ce patron emboîte une demande dans un objet, permettant de paramétrer, mettre en file d'attente, journaliser et annuler des demandes11. Dans ce patron un objet command correspond à une opération à effectuer. L'interface de cet objet comporte une méthode execute. Pour chaque opération, l'application va créer un objet différent qui implémente cette interface - qui comporte une méthode execute. L'opération est lancée lorsque la méthodeexecute est utilisée. Ce patron est notamment utilisé pour les barres d'outils17.
+Composite
+	Ce patron permet de composer une hiérarchie d'objets, et de manipuler de la même manière un élément unique, une branche, ou l'ensemble de l'arbre11. Il permet en particulier de créer des objets complexes en reliant différents objets selon une structure en arbre. Ce patron impose que les différents objets aient une même interface, ce qui rend uniformes les manipulations de la structure. Par exemple dans un traitement de texte, les mots sont placés dans des paragraphes disposés dans des colonnes dans des pages ; pour manipuler l'ensemble, une classe composite implémente une interface. Cette interface est héritée par les objets qui représentent les textes, les paragraphes, les colonnes et les pages18.
+Decorator
+	Ce patron permet d'attacher dynamiquement des responsabilités à un objet. Une alternative à l'héritage11. Ce patron est inspiré des poupées russes. Un objet peut être caché à l'intérieur d'un autre objet décorateur qui lui rajoutera des fonctionnalités, l'ensemble peut être décoré avec un autre objet qui lui ajoute des fonctionnalités et ainsi de suite. Cette technique nécessite que l'objet décoré et ses décorateurs implémentent la même interface, qui est typiquement définie par une classe abstraite19.
+Façade
+	Ce patron fournit une interface unifiée sur un ensemble d'interfaces d'un système11. Il est utilisé pour réaliser des interfaces de programmation. Si un sous-système comporte plusieurs composants qui doivent être utilisés dans un ordre précis, une classe façade sera mise à disposition, et permettra de contrôler l'ordre des opérations et de cacher les détails techniques des sous-systèmes20.
+Factory method
+	Ce patron fournit une interface pour créer un objet qui laisse la possibilité aux sous-classes de décider quel type d'objet créer11. Ce patron est utilisé lorsque la classe d'un objet n'est pas connue au moment de la compilation. Une méthode pour créer un objet factory method est définie dans une classe abstraite, et implémentée dans les différentes sous-classes. La factory method peut également comporter une implémentation par défaut16.
+Flyweight
+	Dans le patron flyweight (en français poids-mouche), un type d'objet est utilisé pour représenter une gamme de petits objets tous différents11. Ce patron permet de créer un ensemble d'objets et de les réutiliser. Il peut être utilisé par exemple pour représenter un jeu de caractères : Un objet factory va retourner un objet correspondant au caractère recherché. La même instance peut être retournée à chaque fois que le caractère est utilisé dans un texte20.
+Interpreter
+	Le patron comporte deux composants centraux : le contexte et l'expression20 ainsi que des objets qui sont des représentations d'éléments de grammaire d'un langage de programmation11. Le patron est utilisé pour transformer une expression écrite dans un certain langage de programmation - un texte source - en quelque chose de manipulable par programmation20 : Le code source est écrit conformément à une ou plusieurs règles de grammaire, et un objet est créé pour chaque utilisation d'une règle de grammaire. L'objet interpreter est responsable de transformer le texte source en objets21.
+Iterator
+	Ce patron permet d'accéder séquentiellement aux éléments d'un ensemble sans connaitre les détails techniques du fonctionnement de l'ensemble11. C'est un des patrons les plus simples et les plus fréquents. Selon la spécification originale, il consiste en une interface qui fournit les méthodes Next et Current. L'interface en Java comporte généralement une méthode nextElement et une méthode hasMoreElements10.
+Mediator
+	Dans ce patron il y a un objet qui définit comment plusieurs objets communiquent entre eux en évitant à chacun de faire référence à ses interlocuteurs11. Ce patron est utilisé quand il y a un nombre non négligeable de composants et de relations entre les composants. Par exemple dans un réseau de 5 composants il peut y avoir jusqu'à 20 relations (chaque composant vers 4 autres). Un composant médiateur est placé au milieu du réseau et le nombre de relations est diminué : chaque composant est relié uniquement au médiateur22. Le mediator joue un rôle similaire à un sujet dans le patron observer et sert d'intermédiaire pour assurer les communications entre les objets23.
+Memento
+	Ce patron vise à externaliser l'état interne d'un objet sans perte d'encapsulation. Permet de remettre l'objet dans l'état où il était auparavant11. Ce patron permet de stocker l'état interne d'un objet sans que cet état ne soit rendu public par une interface. Il est composé de trois classes : l´origine - d'où l'état provient, le memento - l'état de l'objet d'origine, et le gardien qui est l'objet qui manipulera le memento. L´origine comporte une méthode pour manipuler les memento. Le gardien est responsable de stocker les memento et de les renvoyer à leur origine. Ce patron ne définit pas d'interface précise pour les différents objets, qui sont cependant toujours au nombre de trois24.
+Object Pool
+	Ce patron permet d'économiser les temps d'instanciation et de suppression lorsque de nombreux objets ont une courte durée d'utilisation. Il consiste à administrer une collection d'objets qui peuvent être recyclés. Une méthode du Pool délivre un objet soit par une nouvelle instanciation, soit par recyclage d'un objet périmé. Lorsque les objets arrivent à la fin de leur cycle de vie, ils sont remis à la disposition du Pool pour un futur recyclage. Dans la phase d'instanciation, le Pool peut instancier plus d'un objet à la fois si l'algorithme d'instanciation a une complexité meilleure que O(n). Le patron Object Pool est particulièrement utile lorsque le nombre total de cycles de vie est très grand devant le nombre d'instances à un moment précis et que les opérations d'instanciation et/ou suppression sont coûteuses en temps d'exécution par rapport à leur recyclage.
+Observer
+	Ce patron établit une relation un à plusieurs entre des objets, où lorsqu'un objet change, plusieurs autres objets sont avisés du changement11. Dans ce patron, un objet le sujet tient une liste des objets dépendants des observateurs qui seront avertis des modifications apportées au sujet. Quand une modification est apportée, le sujet émet un message aux différents observateurs. Le message peut contenir une description détaillée du changement23. Dans ce patron, un objet observer comporte une méthode pour inscrire des observateurs. Chaque observateur comporte une méthode Notify. Lorsqu'un message est émis, l'objet appelle la méthode Notify de chaque observateur inscrit25.
+Prototype
+	Ce patron permet de définir le genre d'objet à créer en dupliquant une instance qui sert d'exemple - le prototype11. L'objectif de ce patron est d'économiser le temps nécessaire pour instancier des objets. Selon ce patron, une application comporte une instance d'un objet, qui sert de prototype. Cet objet comporte une méthode clone pour créer des duplicata. Des langages de programmation comme PHP ont une méthode clone incorporée dans tous les objets26.
+Proxy
+	Ce patron est un substitut d'un objet, qui permet de contrôler l'utilisation de ce dernier11. Un proxy est un objet destiné à protéger un autre objet. Le proxy a la même interface que l'objet à protéger. Un proxy peut être créé par exemple pour permettre d’accéder à distance à un objet (via un middleware). Le proxy peut également être créé dans le but de retarder la création de l'objet protégé - qui sera créé immédiatement avant d'être utilisé. Dans sa forme la plus simple, un proxy ne protège rien du tout et transmet tous les appels de méthode à l'objet cible14.
+Singleton
+	Ce patron vise à assurer qu'il n'y a toujours qu'une seule instance d'une classe en fournissant une interface pour la manipuler11. C'est un des patrons les plus simples. L'objet qui ne doit exister qu'en une seule instance comporte une méthode pour obtenir cette unique instance et un mécanisme pour empêcher la création d'autres instances16.
+State
+	Ce patron permet à un objet de modifier son comportement lorsque son état interne change11. Ce patron est souvent utilisé pour implémenter une machine à états. Un exemple d'appareil à états est le lecteur audio - dont les états sont lecture, enregistrement, pause et arrêt. Selon ce patron il existe une classe machine à états, et une classe pour chaque état. Lorsqu'un événement provoque le changement d'état, la classe machine à états se relie à un autre état et modifie ainsi son comportement27.
+Strategy
+	Dans ce patron, une famille d'algorithmes est encapsulée de manière qu'ils soient interchangeables. Les algorithmes peuvent changer indépendamment de l'application qui s'en sert11. Il comporte trois rôles : le contexte, la stratégie et les implémentations. La stratégie est l'interface commune aux différentes implémentations - typiquement une classe abstraite. Le contexte est l'objet qui va associer un algorithme avec un processus20.
+Template method
+	Ce patron définit la structure générale d'un algorithme en déléguant certains passages. Permettant à des sous-classes de modifier l'algorithme en conservant sa structure générale11. C'est un des patrons les plus simples et les plus couramment utilisés en programmation orientée objet. Il est utilisé lorsqu'il y a plusieurs implémentations possibles d'un calcul. Une classe d'exemple (anglais template) comporte des méthodes d'exemple, qui, utilisées ensemble, implémentent un algorithme par défaut. Certaines méthodes peuvent être vides ou abstraites. Les sous-classes de la classe template peuvent remplacer certaines méthodes et ainsi créer un algorithme dérivé21.
+Visitor
+	Ce patron représente une opération à effectuer sur un ensemble d'objets. Permet de modifier l'opération sans changer l'objet concerné ni la structure11. Selon ce patron, les objets à modifier sont passés en paramètre à une classe tierce qui effectuera des modifications. Une classe abstraite Visitor définit l'interface de la classe tierce. Ce patron est utilisé notamment pour manipuler un jeu d'objets, où les objets peuvent avoir différentes interfaces, qui ne peuvent pas être modifiés20.
+Modèle-vue-contrôleur
+	Combinaison des patrons observateur, stratégie et composite, ce qui forme ainsi un patron d'architecture.
+
+Patrons GRASP
+	Les patrons GRASP (general responsibility assignment software patterns (ou principles)), GRASP - sont des patrons créés par Craig Larman qui décrivent des règles pour affecter les responsabilités aux classes d'un programme orienté objet pendant la conception, en liaison avec la méthode de conception BCE (pour boundary control entity - en français MVC « modèle vue contrôleur »)28 :
+		Expert
+		Créateur
+		Faible couplage
+		Forte cohésion
+		Contrôleur
+		Polymorphisme
+		Indirection
+		Fabrication pure
+		Protection des variations
+
+Autres patrons de conception
+	Inversion de contrôle
+	Injection de dépendances
+	
+Création 	
+	Fabrique abstraite	Monteur	Fabrique	Prototype	Singleton
+
+Structure 	
+	Adaptateur	Pont	Objet composite	Décorateur	Façade	Poids-mouche	Proxy
+	
+Comportement 	
+	Chaîne de responsabilité	Commande	Interpréteur	Itérateur	Médiateur	Mémento	Observateur	État	Stratégie	Patron de méthode	Visiteur	Fonction de rappel
+
+Autres patrons 	
+	Modèle-vue-vue modèle	Modèle-vue-contrôleur	Modèle de Seeheim	Modèle-vue-présentation	Mémoïsation	Post-redirect-get	Présentation, abstraction, contrôle	Support d'initialisation à la demande	Signaux et slots	Objet de transfert de données	Objet d'accès aux données	Désignation chaînée	Double-checked locking	Active record	Inversion de contrôle	MapReduce	Reactor
+
+
+
+http://www.goprod.bouhours.net/?lang=fr -- 
+https://upload.wikimedia.org/wikipedia/commons/4/48/Patrons_de_conception-fr.pdf
+https://fr.wikibooks.org/wiki/Patrons_de_conception -- 
+Introduction
+Patrons du à Gang of Four
+	Patrons de création
+		Singleton
+		Prototype
+		Fabrique
+		Fabrique abstraite
+		Monteur
+	Patrons de structure
+		Pont
+		Façade
+		Adaptateur
+		Objet composite
+		Proxy
+		Poids-mouche
+		Décorateur
+	Patrons de comportement
+		Chaîne de responsabilit�
+		Commande
+		Interpréteur
+		Itérateur
+		Médiateur
+		Mémento
+		Observateur
+		État
+		stratégie
+		Patron de méthode
+		Visiteur
+Patrons GRASP
+	Expert en information
+	Créateur
+	Faible couplage
+	Forte cohésion
+	Contrôleur
+	Polymorphisme
+	Fabrication pure
+	Indirection
+	Protection
+Patrons d'entreprise
+	Logique du domaine
+	Architecture de source de données
+	Comportement objet-relationnel
+	Structure objet-relationnel
+	Association méta-données objet-relationnel
+	Présentation web
+	Distribution
+	Concurrence locale (hors-ligne)
+	État de session (Session State Patterns)
+	Patrons de base
+		Passerelle (Gateway)
+		Mapper
+		Type de base pour la couche
+		Interface séparée
+		Registre
+		Plugin
+Autres patrons
+	Type fantôme
+	Double-dispatch
+	Post-Redirect-Get
+	Map-Reduce
+	Évaluation retardée
+	Copie sur modification
+	Injection de dépendance
+	Inversion de contrôle
+	Modèle-Vue-Présentateur
+	Écart de génération
+	Objet nul
+Bibliographie et liens	
+	
