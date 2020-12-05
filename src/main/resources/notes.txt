@@ -16,6 +16,10 @@ https://www.tutorialspoint.com/design_pattern/adapter_pattern.htm --
 https://www.tutorialspoint.com/design_pattern/command_pattern.htm -- 
 https://www.tutorialspoint.com/design_pattern/builder_pattern.htm -- 
 
+https://refactoring.guru/smells/switch-statements -- 
+https://refactoring.guru/replace-type-code-with-state-strategy -- 
+https://refactoring.guru/replace-type-code-with-subclasses -- 
+
 https://cheliou.developpez.com/tutoriels/software-craftsmanship/object-building/ -- 
 	Tutoriel sur l'évolution de la construction d'objets en Java
 		Du Telescoping Constructor au Builder Pattern
